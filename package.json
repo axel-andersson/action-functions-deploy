@@ -36,5 +36,8 @@
       "pre-commit": "pretty-quick --staged && npm run build"
     }
   },
-  "version": "0.7.1"
+  "version": "0.7.1",
+  "dependencies": {
+    "child_process": "^1.0.2"
+  }
 }

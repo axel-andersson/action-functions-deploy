@@ -16,7 +16,7 @@
 
 import { ErrorResult } from "./deploy";
 import { existsSync, readFileSync } from "fs";
-import { exec } from "@actions/exec";
+import { exec } from "child_process";
 
 type FirebaseParseSuccessResult = {
   status: "success";
@@ -112,32 +112,29 @@ async function installInDir(directory: string) {
     };
   }
 
-  const installOutputBuffer: Buffer[] = [];
-  const installErrorBuffer: Buffer[] = [];
-
   try {
     console.log(`Installing npm dependencies.`);
 
-    const cwd = process.cwd();
+    exec("ls", (error, stdout, stderr) => {
+        if (error) throw Error;
+        if (stderr) console.log(stderr);
+        console.log(stdout);
+      });
 
-    await exec("npm install", [], {
-      listeners: {
-        stdout: (data: Buffer) => {
-          installOutputBuffer.push(data);
-        },
-        stderr: (data: Buffer) => {
-          installErrorBuffer.push(data);
-        },
-      },
-      cwd
+    exec("npm install", (error, stdout, stderr) => {
+      if (error) throw Error;
+      if (stderr) console.log(stderr);
+      console.log(stdout);
     });
 
-    await exec("npm ls", [], {cwd});
+    exec("npm ls", (error, stdout, stderr) => {
+        if (error) throw Error;
+        if (stderr) console.log(stderr);
+        console.log(stdout);
+      });
 
   } catch (e) {
-    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
-    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
-    console.log(e.message);
+    console.log(e);
     return {
       status: "error",
       error: `Error when installing npm dependencies: ${e}`,
