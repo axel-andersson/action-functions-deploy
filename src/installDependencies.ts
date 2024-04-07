@@ -54,7 +54,9 @@ type FunctionsObject = {
 function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
   try {
     console.log("Parsing 'firebase.json'.");
-    var firebaseData = JSON.parse(readFileSync("firebase.json", "utf8"));
+    const dataString = readFileSync("firebase.json", "utf8");
+    console.log(dataString);
+    var firebaseData = JSON.parse(dataString);
     return { status: "success", result: { data: firebaseData } };
   } catch (e) {
     console.log(e);
@@ -65,9 +67,19 @@ function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
 function getFunctionDirectories(
   firebaseData: any
 ): FunctionDirectoriesResult | ErrorResult {
+  const functionsArray = firebaseData?.functions as any[];
+
+  if (!Array.isArray(functionsArray)) {
+    return {
+      status: "error",
+      error:
+        "Unexpected data shape: 'functions' in firebase.json is not an array.",
+    };
+  }
+
   try {
     console.log("Getting function directory (directories)");
-    const directories = firebaseData.map((item: any) => item.source);
+    const directories = functionsArray.map((item: any) => item.source);
 
     for (const directory of directories) {
       if (typeof directory !== "string")
@@ -164,7 +176,7 @@ export async function installDependencies(): Promise<
     }
   }
 
-  console.log("Successfully installed npm dependencies.")
+  console.log("Successfully installed npm dependencies.");
 
   return { status: "success", result: { directories } };
 }
