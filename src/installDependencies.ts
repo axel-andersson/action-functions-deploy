@@ -118,19 +118,6 @@ async function installInDir(directory: string) {
   try {
     const cwd = process.cwd();
 
-    console.log("Changing github action exec to: " + cwd);
-
-    await exec(`cd ${cwd}`, [], {
-      listeners: {
-        stdout: (data: Buffer) => {
-          installOutputBuffer.push(data);
-        },
-        stderr: (data: Buffer) => {
-          installErrorBuffer.push(data);
-        },
-      },
-    });
-
     console.log(`Installing npm dependencies.`);
 
     await exec("npm install", [], {
@@ -146,18 +133,6 @@ async function installInDir(directory: string) {
 
     await exec("npm ls");
 
-    console.log("Changing github action exec to: " + baseDirectory);
-
-    await exec(`cd ${baseDirectory}`, [], {
-      listeners: {
-        stdout: (data: Buffer) => {
-          installOutputBuffer.push(data);
-        },
-        stderr: (data: Buffer) => {
-          installErrorBuffer.push(data);
-        },
-      },
-    });
   } catch (e) {
     console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
     console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
