@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  endGroup,
-  getInput,
-  setFailed,
-  startGroup,
-} from "@actions/core";
+import { endGroup, getInput, setFailed, startGroup } from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 import { existsSync } from "fs";
 import { createGacFile } from "./createGACFile";
@@ -27,7 +22,7 @@ import {
   deployProductionFunctions,
   ErrorResult,
 } from "./deploy";
-
+import { installDependencies } from "./installDependencies";
 
 // Inputs defined in action.yml
 const projectId = getInput("projectId");
@@ -73,6 +68,16 @@ async function run() {
     );
     endGroup();
 
+    startGroup("Installing function dependencies");
+
+    const installDependenciesResult = await installDependencies();
+    
+    if (installDependenciesResult.status === "error") {
+      throw Error((installDependenciesResult).error);
+    }
+
+    endGroup();
+
     startGroup("Deploying firebase functions");
     const deployment = await deployProductionFunctions(gacFilename, {
       projectId,
@@ -93,11 +98,9 @@ async function run() {
       conclusion: "success",
       output: {
         title: `Functions deploy succeeded`,
-        summary: "" // TODO: Add summary
+        summary: "", // TODO: Add summary
       },
     });
-
-
   } catch (e) {
     setFailed(e.message);
 
