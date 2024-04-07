@@ -72,8 +72,8 @@ export function interpretChannelDeployResult(
 
 async function execWithCredentials(
   args: string[],
-  projectId,
-  gacFilename,
+  projectId: string,
+  gacFilename: string,
   opts: { debug?: boolean; firebaseToolsVersion?: string }
 ) {
   let deployOutputBuf: Buffer[] = [];
