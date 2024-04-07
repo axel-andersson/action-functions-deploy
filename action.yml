@@ -40,7 +40,6 @@ inputs:
     default: "."
     required: false
   firebaseToolsVersion:
-    description: >-
-      The version of firebase-tools to use. Defaults to `latest`.
+    description: "The version of firebase-tools to use. Defaults to `latest`."
     default: latest
     required: false
