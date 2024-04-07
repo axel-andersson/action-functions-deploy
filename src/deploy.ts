@@ -40,6 +40,8 @@ export type ProductionSuccessResult = {
   };
 };
 
+
+
 type DeployConfig = {
   projectId: string;
   target?: string;
@@ -124,7 +126,7 @@ async function execWithCredentials(
 }
 
 export async function deployProductionFunctions(
-  gacFilename,
+  gacFilename: string,
   productionDeployConfig: ProductionDeployConfig
 ) {
   const { projectId, firebaseToolsVersion } = productionDeployConfig;
@@ -142,3 +144,4 @@ export async function deployProductionFunctions(
 
   return deploymentResult;
 }
+
