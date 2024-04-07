@@ -15,7 +15,7 @@
  */
 
 import { ErrorResult } from "./deploy";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { exec } from "@actions/exec";
 
 type FirebaseParseSuccessResult = {
@@ -167,8 +167,4 @@ export async function installDependencies(): Promise<
   console.log("Successfully installed npm dependencies.")
 
   return { status: "success", result: { directories } };
-}
-
-function readFileSync(arg0: string, arg1: string): string {
-  throw new Error("Function not implemented.");
 }
