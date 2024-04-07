@@ -92,7 +92,7 @@ async function run() {
     //TODO: START - Needed for functions deploy?
 
     const hostname = target ? `${target}.web.app` : `${projectId}.web.app`;
-    const url = `https://${hostname}/`;
+    const url = `https://${hostname}/`; // Update to console link
     await finish({
       details_url: url,
       conclusion: "success",
