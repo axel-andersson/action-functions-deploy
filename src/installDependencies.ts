@@ -128,8 +128,12 @@ async function installInDir(directory: string) {
         },
       },
     });
+
+    await exec("npm ls");
+
   } catch (e) {
     console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
+    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
     console.log(e.message);
     return {
       status: "error",
