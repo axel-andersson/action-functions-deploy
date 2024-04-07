@@ -16,7 +16,7 @@
 
 import { ErrorResult } from "./deploy";
 import { existsSync, readFileSync } from "fs";
-import { exec } from "child_process";
+import { exec } from "@actions/exec";
 
 type FirebaseParseSuccessResult = {
   status: "success";
@@ -112,29 +112,56 @@ async function installInDir(directory: string) {
     };
   }
 
+  const installOutputBuffer: Buffer[] = [];
+  const installErrorBuffer: Buffer[] = [];
+
   try {
-    console.log(`Installing npm dependencies.`);
+    const cwd = process.cwd();
 
-    exec("ls", (error, stdout, stderr) => {
-        if (error) throw Error;
-        if (stderr) console.log(stderr);
-        console.log(stdout);
-      });
+    console.log("Changing github action exec to: " + cwd);
 
-    exec("npm install", (error, stdout, stderr) => {
-      if (error) throw Error;
-      if (stderr) console.log(stderr);
-      console.log(stdout);
+    await exec(`cd ${cwd}`, [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
     });
 
-    exec("npm ls", (error, stdout, stderr) => {
-        if (error) throw Error;
-        if (stderr) console.log(stderr);
-        console.log(stdout);
-      });
+    console.log(`Installing npm dependencies.`);
 
+    await exec("npm install", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+    });
+
+    await exec("npm ls");
+
+    console.log("Changing github action exec to: " + baseDirectory);
+
+    await exec(`cd ${baseDirectory}`, [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+    });
   } catch (e) {
-    console.log(e);
+    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
+    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
+    console.log(e.message);
     return {
       status: "error",
       error: `Error when installing npm dependencies: ${e}`,
