@@ -96,7 +96,7 @@ async function execWithCredentials(
         },
         env: {
           ...process.env,
-          FIREBASE_DEPLOY_AGENT: "action-hosting-deploy",
+          FIREBASE_DEPLOY_AGENT: "action-functions-deploy",
           GOOGLE_APPLICATION_CREDENTIALS: gacFilename, // the CLI will automatically authenticate with this env variable set
         },
       }
@@ -123,40 +123,14 @@ async function execWithCredentials(
     : ""; // output from the CLI
 }
 
-export async function deployPreview(
-  gacFilename: string,
-  deployConfig: ChannelDeployConfig
-) {
-  const { projectId, channelId, target, expires, firebaseToolsVersion } =
-    deployConfig;
-
-  const deploymentText = await execWithCredentials(
-    [
-      "hosting:channel:deploy",
-      channelId,
-      ...(target ? ["--only", target] : []),
-      ...(expires ? ["--expires", expires] : []),
-    ],
-    projectId,
-    gacFilename,
-    { firebaseToolsVersion }
-  );
-
-  const deploymentResult = JSON.parse(deploymentText.trim()) as
-    | ChannelSuccessResult
-    | ErrorResult;
-
-  return deploymentResult;
-}
-
-export async function deployProductionSite(
+export async function deployProductionFunctions(
   gacFilename,
   productionDeployConfig: ProductionDeployConfig
 ) {
-  const { projectId, target, firebaseToolsVersion } = productionDeployConfig;
+  const { projectId, firebaseToolsVersion } = productionDeployConfig;
 
   const deploymentText = await execWithCredentials(
-    ["deploy", "--only", `hosting${target ? ":" + target : ""}`],
+    ["deploy", "--only", "functions"],
     projectId,
     gacFilename,
     { firebaseToolsVersion }

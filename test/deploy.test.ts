@@ -2,7 +2,7 @@ import {
   ChannelSuccessResult,
   ChannelDeployConfig,
   deployPreview,
-  deployProductionSite,
+  deployProductionFunctions,
   ProductionDeployConfig,
   ProductionSuccessResult,
 } from "../src/deploy";
@@ -133,7 +133,7 @@ describe("deploy", () => {
       // @ts-ignore read-only property
       exec.exec = jest.fn(fakeExec);
 
-      const deployOutput: ProductionSuccessResult = (await deployProductionSite(
+      const deployOutput: ProductionSuccessResult = (await deployProductionFunctions(
         "my-file",
         baseLiveDeployConfig
       )) as ProductionSuccessResult;

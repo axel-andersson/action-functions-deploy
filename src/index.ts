@@ -18,46 +18,32 @@ import {
   endGroup,
   getInput,
   setFailed,
-  setOutput,
   startGroup,
 } from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 import { existsSync } from "fs";
-import { createCheck } from "./createCheck";
 import { createGacFile } from "./createGACFile";
 import {
-  deployPreview,
-  deployProductionSite,
+  deployProductionFunctions,
   ErrorResult,
-  interpretChannelDeployResult,
 } from "./deploy";
-import { getChannelId } from "./getChannelId";
-import {
-  getURLsMarkdownFromChannelDeployResult,
-  postChannelSuccessComment,
-} from "./postOrUpdateComment";
+
 
 // Inputs defined in action.yml
-const expires = getInput("expires");
 const projectId = getInput("projectId");
 const googleApplicationCredentials = getInput("firebaseServiceAccount", {
   required: true,
 });
-const configuredChannelId = getInput("channelId");
-const isProductionDeploy = configuredChannelId === "live";
-const token = process.env.GITHUB_TOKEN || getInput("repoToken");
+const token = process.env.GITHUB_TOKEN || getInput("repoToken"); //TODO: Needed for function deployment?
 const octokit = token ? getOctokit(token) : undefined;
 const entryPoint = getInput("entryPoint");
-const target = getInput("target");
+const target = getInput("target"); // TODO: Needed for function deployment?
 const firebaseToolsVersion = getInput("firebaseToolsVersion");
 
 async function run() {
-  const isPullRequest = !!context.payload.pull_request;
+  const isPullRequest = !!context.payload.pull_request; // TODO: Needed for function deployment?
 
   let finish = (details: Object) => console.log(details);
-  if (token && isPullRequest) {
-    finish = await createCheck(octokit, context);
-  }
 
   try {
     startGroup("Verifying firebase.json exists");
@@ -87,72 +73,31 @@ async function run() {
     );
     endGroup();
 
-    if (isProductionDeploy) {
-      startGroup("Deploying to production site");
-      const deployment = await deployProductionSite(gacFilename, {
-        projectId,
-        target,
-        firebaseToolsVersion,
-      });
-      if (deployment.status === "error") {
-        throw Error((deployment as ErrorResult).error);
-      }
-      endGroup();
-
-      const hostname = target ? `${target}.web.app` : `${projectId}.web.app`;
-      const url = `https://${hostname}/`;
-      await finish({
-        details_url: url,
-        conclusion: "success",
-        output: {
-          title: `Production deploy succeeded`,
-          summary: `[${hostname}](${url})`,
-        },
-      });
-      return;
-    }
-
-    const channelId = getChannelId(configuredChannelId, context);
-
-    startGroup(`Deploying to Firebase preview channel ${channelId}`);
-    const deployment = await deployPreview(gacFilename, {
+    startGroup("Deploying to production site");
+    const deployment = await deployProductionFunctions(gacFilename, {
       projectId,
-      expires,
-      channelId,
       target,
       firebaseToolsVersion,
     });
-
     if (deployment.status === "error") {
       throw Error((deployment as ErrorResult).error);
     }
     endGroup();
 
-    const { expireTime, urls } = interpretChannelDeployResult(deployment);
+    //TODO: START - Needed for functions deploy?
 
-    setOutput("urls", urls);
-    setOutput("expire_time", expireTime);
-    setOutput("details_url", urls[0]);
-
-    const urlsListMarkdown =
-      urls.length === 1
-        ? `[${urls[0]}](${urls[0]})`
-        : urls.map((url) => `- [${url}](${url})`).join("\n");
-
-    if (token && isPullRequest && !!octokit) {
-      const commitId = context.payload.pull_request?.head.sha.substring(0, 7);
-
-      await postChannelSuccessComment(octokit, context, deployment, commitId);
-    }
-
+    const hostname = target ? `${target}.web.app` : `${projectId}.web.app`;
+    const url = `https://${hostname}/`;
     await finish({
-      details_url: urls[0],
+      details_url: url,
       conclusion: "success",
       output: {
-        title: `Deploy preview succeeded`,
-        summary: getURLsMarkdownFromChannelDeployResult(deployment),
+        title: `Production deploy succeeded`,
+        summary: "" // TODO: Add summary
       },
     });
+
+
   } catch (e) {
     setFailed(e.message);
 
