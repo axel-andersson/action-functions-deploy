@@ -112,6 +112,17 @@ async function installInDir(directory: string) {
     };
   }
 
+  try {
+    console.log(`Changing to functions directory: ${directory}`);
+    process.chdir(directory);
+  } catch (e) {
+    return {
+      status: "error",
+      error: `Error changing to directory: ${directory}.`,
+    };
+  }
+
+
   const installOutputBuffer: Buffer[] = [];
   const installErrorBuffer: Buffer[] = [];
 
