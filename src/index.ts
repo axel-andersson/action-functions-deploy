@@ -73,7 +73,7 @@ async function run() {
     );
     endGroup();
 
-    startGroup("Deploying to production site");
+    startGroup("Deploying firebase functions");
     const deployment = await deployProductionFunctions(gacFilename, {
       projectId,
       target,
@@ -92,7 +92,7 @@ async function run() {
       details_url: url,
       conclusion: "success",
       output: {
-        title: `Production deploy succeeded`,
+        title: `Functions deploy succeeded`,
         summary: "" // TODO: Add summary
       },
     });
@@ -104,7 +104,7 @@ async function run() {
     await finish({
       conclusion: "failure",
       output: {
-        title: "Deploy preview failed",
+        title: "Functions deploy failed",
         summary: `Error: ${e.message}`,
       },
     });
