@@ -118,6 +118,8 @@ async function installInDir(directory: string) {
   try {
     console.log(`Installing npm dependencies.`);
 
+    const cwd = process.cwd();
+
     await exec("npm install", [], {
       listeners: {
         stdout: (data: Buffer) => {
@@ -127,9 +129,10 @@ async function installInDir(directory: string) {
           installErrorBuffer.push(data);
         },
       },
+      cwd
     });
 
-    await exec("npm ls");
+    await exec("npm ls", [], {cwd});
 
   } catch (e) {
     console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
