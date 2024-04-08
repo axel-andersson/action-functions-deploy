@@ -79,14 +79,13 @@ async function run() {
     }
     endGroup();
 
-    const hostname = "hostname";
-    const url = `https://${hostname}/`; // Update to console link
+    const url = `https://console.firebase.google.com/project/${projectId}/functions`; // Update to console link
     await finish({
-      details_url: url,
+      console_url: url,
       conclusion: "success",
       output: {
         title: `Functions deploy succeeded`,
-        summary: "", // TODO: Add summary
+        summary: `Deployed all functions to firebase project '${projectId}`,
       },
     });
   } catch (e) {

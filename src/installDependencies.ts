@@ -55,7 +55,14 @@ function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
   try {
     console.log("Parsing 'firebase.json'.");
     const dataString = readFileSync("firebase.json", "utf8");
+    
+    console.log(`##### firebase.JSON
+       `)
     console.log(dataString);
+    console.log(`
+    
+    
+    `)
     var firebaseData = JSON.parse(dataString);
     return { status: "success", result: { data: firebaseData } };
   } catch (e) {
@@ -128,7 +135,7 @@ async function installInDir(directory: string) {
 
   try {
     const cwd = process.cwd();
-    console.log("CWD: " + cwd);
+    console.log("cwd: " + cwd);
 
     console.log(`Installing npm dependencies.`);
 
@@ -139,12 +146,13 @@ async function installInDir(directory: string) {
         },
         stderr: (data: Buffer) => {
           installErrorBuffer.push(data);
-        },
-        debug: (data) => console.log(data),
+        }
       },
       cwd,
     });
 
+    console.log("")
+    console.log(`Listing installed dependencies.`);
     await exec("npm ls", [], { cwd });
   } catch (e) {
     console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
@@ -195,7 +203,7 @@ export async function installDependencies(): Promise<
     }
   }
 
-  console.log("Successfully installed npm dependencies.");
+  console.log("Successfully installed all npm dependencies.");
 
   return { status: "success", result: { directories } };
 }

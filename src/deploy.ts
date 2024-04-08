@@ -92,6 +92,7 @@ async function execWithCredentials(
       {
         listeners: {
           stdout(data: Buffer) {
+            console.log(data.toString())
             deployOutputBuf.push(data);
           },
         },
