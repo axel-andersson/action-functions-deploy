@@ -1,13 +1,20 @@
-# 🔥🌎 Firebase Hosting GitHub Action
+# 🔥☁️ Firebase Functions GitHub Action
 
-- Creates a new preview channel (and its associated preview URL) for every PR on your GitHub repository.
-- Adds a comment to the PR with the preview URL so that you and each reviewer can view and test the PR's changes in a "preview" version of your app.
-- Updates the preview URL with changes from each commit by automatically deploying to the associated preview channel. The URL doesn't change with each new commit.
-- (Optional) Deploys the current state of your GitHub repo to your live channel when the PR is merged.
+- Deploys firebase functions from your GitHub repo
+- Currently only supports JavaScript and TypeScript functions. Python is not yet supported.
 
 ## Setup
 
-A full setup guide can be found [in the Firebase Hosting docs](https://firebase.google.com/docs/hosting/github-integration).
+Setting up the deployment of Firebase Functions becomes simpler if the deployment of hosting is configured first.
+This is because setting up hosting deployment automatically creates a service account in your Firebase project and
+gives it permissions to deploy Firebase Hosting. This service account can then be used to deploy Firebase Functions.
+(Note that additional permissions are required for deploying Firebase Functions.)
+
+Importantly, it also encrypts that service account's JSON key and uploads it to the specified GitHub repository as a [GitHub secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions). This same key can be used when deploying Firebase Functions.
+
+### Setting up hosting
+
+A full setup guide of Firebase Hosting can be found [in the Firebase Hosting docs](https://firebase.google.com/docs/hosting/github-integration).
 
 The [Firebase CLI](https://firebase.google.com/docs/cli) can get you set up quickly with a default configuration.
 
@@ -24,42 +31,64 @@ firebase init hosting
 firebase init hosting:github
 ```
 
+### Setting up functions
+
+A setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd).
+
+- If you've NOT set up Functions, run this version of the command from the root of your local directory:
+
+```bash
+firebase init functions
+```
+
+### Setting up Service Account permissions
+
+Setting up firebase hosting by following the steps outlined above creates a service account with a name similar to the following:
+`github-action-123456789@your-firebase-project.iam.gserviceaccount.com`
+
+You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this service account.
+This will allow the service account to properly deploy Cloud Functions.
+
+The permissions can be updated in the **IAM & ADMIN** panel of the Google Cloud console.
+`https://console.cloud.google.com/iam-admin/iam?project=your-firebase-project-id`
+
+If you haven't enabled the **Identity and Access Management (IAM) API**, you may need to do so in order to update roles and allow deployment.
+
+
 ## Usage
 
-### Deploy to a new preview channel for every PR
+### Deploy functions on merge
 
-Add a workflow (`.github/workflows/deploy-preview.yml`):
+Add a workflow (`.github/workflows/deploy-functions-prod.yml`):
 
 ```yaml
-name: Deploy to Preview Channel
+name: Deploy Firebase Functions
 
 on:
-  pull_request:
-    # Optionally configure to run only for specific files. For example:
-    # paths:
-    # - "website/**"
+  push:
+    branches:
+      - main
 
 jobs:
-  build_and_preview:
+  deploy_live_website:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Add any build steps here. For example:
-      # - run: npm ci && npm run build
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: axel-andersson/action-functions-deploy@v1.0
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-          expires: 30d
           projectId: your-Firebase-project-ID
 ```
 
-### Deploy to your live channel on merge
+### Deploy functions and hosting on merge
 
-Add a workflow (`.github/workflows/deploy-prod.yml`):
+Add a workflow (`.github/workflows/deploy-functions-hosting-prod.yml`):
+
+This uses the github action FirebaseExtended/action-hosting-deploy
+For information about options and how to use this action, please visit https://github.com/FirebaseExtended/action-hosting-deploy
 
 ```yaml
-name: Deploy to Live Channel
+name: Deploy Firebase Functions
 
 on:
   push:
@@ -82,7 +111,78 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           projectId: your-Firebase-project-ID
           channelId: live
+      - uses: axel-andersson/action-functions-deploy@v1.0
+      with:
+        firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+        projectId: your-Firebase-project-ID
 ```
+
+### Deploying functions from a repo with a non-default structure
+
+If the `firebase.json` file is not located in the root of your GitHub repo, the option `entryPoint` needs to be specified.
+This option needs to be set to the path to the directory containing `firebase.json`.
+
+This is a default firebase project structure. The `entryPoint` option may be left out or set to the default values of `.`
+
+```
+.
+├── functions                     # firebase functions
+│   └── ...
+├── hosting                       # firebase hosting
+│   └── ...
+├── .firebaserc                   # firebase config file
+├── .firebase.json                # firebase config file
+└── ...
+
+```
+
+The following is an example of a monorepo where multiple applications are connected to the same firebase project. The applications, as well as the firebase folder, are located inside the `packages` directory. In this arbitrary example project, the directory containing the firebase functions has been named `odd-functions-folder`.
+
+Here, the `entryPoint` needs to be set to `./packages/firebase`. The deploy action automatically parses the directory containing functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `./packages/firebase/odd-functions-folder`.
+
+_The action also supports using multiple codebases in a monorepo setup (assuming all are codebases are JavaScript or TypeScript and all directories are children to the directory containing firebase.json). See [the Firebase docs](https://firebase.google.com/docs/functions/organize-functions?gen=2nd) for more info about using multiple codebases._  Please note that this feature is not extensively tested.
+
+```
+.
+├── packages 
+│   ├── android                   # android app
+│   ├── ios                       # ios app
+│   ├── web                       # web app
+│   └── firebase                  # the folder containting firebase config files
+│       ├── .firebaserc           # firebase config file
+│       ├── .firebase.json        # firebase config file
+│       ├── odd-functions-folder  # firebase functions
+│       │   └── ...
+│       └── ...
+└── ...
+
+```
+
+For this project, firebase functions can be deployed using the following action:
+
+```yaml
+name: Deploy Firebase Functions
+
+on:
+  push:
+    branches:
+      - main
+    # Optionally configure to run only for specific files. For example:
+    # paths:
+    # - "website/**"
+
+jobs:
+  deploy_live_website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: axel-andersson/action-functions-deploy@v1.0
+      with:
+        firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+        projectId: your-Firebase-project-ID
+        entryPoint: ./packages/firebase
+```
+
 
 ## Options
 
@@ -96,48 +196,11 @@ to prevent unintended access to your Firebase project. Set it in the "Secrets" a
 of your repository settings and add it as `FIREBASE_SERVICE_ACCOUNT`:
 `https://github.com/USERNAME/REPOSITORY/settings/secrets`.
 
-### `repoToken` _{string}_
-
-Adding `repoToken: "${{secrets.GITHUB_TOKEN}}"` lets the action comment on PRs
-with the preview URL for the associated preview channel. You don't need to set
-this secret yourself - GitHub sets it automatically.
-
-If you omit this option, you'll need to find the preview URL in the action's
-build log.
-
-### `expires` _{string}_
-
-The length of time the preview channel should remain active after the last deploy.
-If left blank, the action uses the default expiry of 7 days.
-The expiry date will reset to this value on every new deployment.
-
 ### `projectId` _{string}_
 
 The Firebase project that contains the Hosting site to which you
 want to deploy. If left blank, you need to check in a `.firebaserc`
 file so that the Firebase CLI knows which Firebase project to use.
-
-### `channelId` _{string}_
-
-The ID of the channel to deploy to. If you leave this blank,
-a preview channel and its ID will be auto-generated per branch or PR.
-If you set it to **`live`**, the action deploys to the live channel of your default Hosting site.
-
-_You usually want to leave this blank_ so that each PR gets its own preview channel.
-An exception might be that you always want to deploy a certain branch to a
-long-lived preview channel (for example, you may want to deploy every commit
-from your `next` branch to a `preprod` preview channel).
-
-### `target` _{string}_
-
-The target name of the Hosting site to deploy to. If you leave this blank,
-the default target or all targets defined in the `.firebaserc` will be deployed to.
-
-You usually want to leave this blank unless you have set up multiple sites in the Firebase Hosting UI
-and are trying to target just one of those sites with this action.
-
-Refer to the Hosting docs about [multiple sites](https://firebase.google.com/docs/hosting/multisites)
-for more information about deploy targets.
 
 ### `entryPoint` _{string}_
 
@@ -148,24 +211,8 @@ file relative to the root of your repository. Defaults to `.` (the root of your 
 
 The version of `firebase-tools` to use. If not specified, defaults to `latest`.
 
-## Outputs
-
-Values emitted by this action that can be consumed by other actions later in your workflow
-
-### `urls`
-
-The url(s) deployed to
-
-### `expire_time`
-
-The time the deployed preview urls expire
-
-### `details_url`
-
-A single URL that was deployed to
-
 ## Status
 
-![Status: Experimental](https://img.shields.io/badge/Status-Experimental-blue)
+![Status: Unofficial](https://img.shields.io/badge/Status-Unofficial-purple)
 
-This repository is maintained by Googlers but is not a supported Firebase product. Issues here are answered by maintainers and other community members on GitHub on a best-effort basis.
+This repository is not maintained by google, nor is it a supported Firebase product. Issues here are answered by maintainers and other community members on GitHub on a best-effort basis.

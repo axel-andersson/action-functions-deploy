@@ -12,41 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Deploy to Firebase Hosting"
-description: "A GitHub Action to deploy to Firebase Hosting"
+name: "Deploy to Firebase Functions"
+description: "A GitHub Action to deploy to Firebase Functions"
 author: "Jason Miller (https://github.com/developit) and Firebase"
 branding:
-  icon: "globe"
-  color: "blue"
+  icon: "cloud"
+  color: "orange"
 runs:
   using: "node16"
   main: "bin/action.min.js"
 inputs:
-  repoToken:
-    description: "The GITHUB_TOKEN secret"
-    required: false
   firebaseServiceAccount:
     description: "Firebase service account JSON"
     required: true
-  expires:
-    description: "How long should a preview live? See the preview channels docs for options"
-    default: "7d"
-    required: false
   projectId:
     description:
       "The project to deploy to. If you leave this blank, make sure you check in
       a .firebaserc file"
-    required: false
-  channelId:
-    description: "The ID of the channel to deploy to. If you leave this blank,
-      a preview channel and its ID will be auto-generated per branch or PR."
-    required: false
-  target:
-    description:
-      "The target name of the Hosting site to deploy to. If you leave this blank,
-      the default target or all targets defined in the .firebaserc will be deployed to.
-      Refer to the Hosting docs about [multiple sites](https://firebase.google.com/docs/hosting/multisites)
-      for more information about deploy targets."
     required: false
   entryPoint:
     description:
@@ -55,14 +37,6 @@ inputs:
     default: "."
     required: false
   firebaseToolsVersion:
-    description: >-
-      The version of firebase-tools to use. Defaults to `latest`.
+    description: "The version of firebase-tools to use. Defaults to `latest`."
     default: latest
     required: false
-outputs:
-  urls:
-    description: The url(s) deployed to
-  expire_time:
-    description: The time the deployed preview urls expire
-  details_url:
-    description: A single URL that was deployed to

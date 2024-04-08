@@ -14,50 +14,22 @@
  * limitations under the License.
  */
 
-import {
-  endGroup,
-  getInput,
-  setFailed,
-  setOutput,
-  startGroup,
-} from "@actions/core";
-import { context, getOctokit } from "@actions/github";
+import { endGroup, getInput, setFailed, startGroup } from "@actions/core";
 import { existsSync } from "fs";
-import { createCheck } from "./createCheck";
 import { createGacFile } from "./createGACFile";
-import {
-  deployPreview,
-  deployProductionSite,
-  ErrorResult,
-  interpretChannelDeployResult,
-} from "./deploy";
-import { getChannelId } from "./getChannelId";
-import {
-  getURLsMarkdownFromChannelDeployResult,
-  postChannelSuccessComment,
-} from "./postOrUpdateComment";
+import { deployProductionFunctions, ErrorResult } from "./deploy";
+import { installDependencies } from "./installDependencies";
 
 // Inputs defined in action.yml
-const expires = getInput("expires");
 const projectId = getInput("projectId");
 const googleApplicationCredentials = getInput("firebaseServiceAccount", {
   required: true,
 });
-const configuredChannelId = getInput("channelId");
-const isProductionDeploy = configuredChannelId === "live";
-const token = process.env.GITHUB_TOKEN || getInput("repoToken");
-const octokit = token ? getOctokit(token) : undefined;
 const entryPoint = getInput("entryPoint");
-const target = getInput("target");
 const firebaseToolsVersion = getInput("firebaseToolsVersion");
 
 async function run() {
-  const isPullRequest = !!context.payload.pull_request;
-
   let finish = (details: Object) => console.log(details);
-  if (token && isPullRequest) {
-    finish = await createCheck(octokit, context);
-  }
 
   try {
     startGroup("Verifying firebase.json exists");
@@ -87,70 +59,33 @@ async function run() {
     );
     endGroup();
 
-    if (isProductionDeploy) {
-      startGroup("Deploying to production site");
-      const deployment = await deployProductionSite(gacFilename, {
-        projectId,
-        target,
-        firebaseToolsVersion,
-      });
-      if (deployment.status === "error") {
-        throw Error((deployment as ErrorResult).error);
-      }
-      endGroup();
+    startGroup("Installing function dependencies");
 
-      const hostname = target ? `${target}.web.app` : `${projectId}.web.app`;
-      const url = `https://${hostname}/`;
-      await finish({
-        details_url: url,
-        conclusion: "success",
-        output: {
-          title: `Production deploy succeeded`,
-          summary: `[${hostname}](${url})`,
-        },
-      });
-      return;
+    const installDependenciesResult = await installDependencies();
+
+    if (installDependenciesResult.status === "error") {
+      throw Error(installDependenciesResult.error);
     }
 
-    const channelId = getChannelId(configuredChannelId, context);
+    endGroup();
 
-    startGroup(`Deploying to Firebase preview channel ${channelId}`);
-    const deployment = await deployPreview(gacFilename, {
+    startGroup("Deploying firebase functions");
+    const deployment = await deployProductionFunctions(gacFilename, {
       projectId,
-      expires,
-      channelId,
-      target,
       firebaseToolsVersion,
     });
-
     if (deployment.status === "error") {
       throw Error((deployment as ErrorResult).error);
     }
     endGroup();
 
-    const { expireTime, urls } = interpretChannelDeployResult(deployment);
-
-    setOutput("urls", urls);
-    setOutput("expire_time", expireTime);
-    setOutput("details_url", urls[0]);
-
-    const urlsListMarkdown =
-      urls.length === 1
-        ? `[${urls[0]}](${urls[0]})`
-        : urls.map((url) => `- [${url}](${url})`).join("\n");
-
-    if (token && isPullRequest && !!octokit) {
-      const commitId = context.payload.pull_request?.head.sha.substring(0, 7);
-
-      await postChannelSuccessComment(octokit, context, deployment, commitId);
-    }
-
+    const url = `https://console.firebase.google.com/project/${projectId}/functions`; // Update to console link
     await finish({
-      details_url: urls[0],
+      console_url: url,
       conclusion: "success",
       output: {
-        title: `Deploy preview succeeded`,
-        summary: getURLsMarkdownFromChannelDeployResult(deployment),
+        title: `Functions deploy succeeded`,
+        summary: `Deployed all functions to firebase project '${projectId}`,
       },
     });
   } catch (e) {
@@ -159,7 +94,7 @@ async function run() {
     await finish({
       conclusion: "failure",
       output: {
-        title: "Deploy preview failed",
+        title: "Functions deploy failed",
         summary: `Error: ${e.message}`,
       },
     });
