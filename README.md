@@ -1,6 +1,7 @@
 # 🔥☁️ Firebase Functions GitHub Action
 
 - Deploys firebase functions from your GitHub repo
+- Currently only supports JavaScript and TypeScript functions. Python is not yet supported.
 
 ## Setup
 
@@ -86,7 +87,76 @@ This uses the github action FirebaseExtended/action-hosting-deploy
 For information about options and how to use this action, please visit https://github.com/FirebaseExtended/action-hosting-deploy
 
 ```yaml
-name: Deploy to Live Channel
+name: Deploy Firebase Functions
+
+on:
+  push:
+    branches:
+      - main
+    # Optionally configure to run only for specific files. For example:
+    # paths:
+    # - "website/**"
+
+jobs:
+  deploy_live_website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Add any build steps here. For example:
+      # - run: npm ci && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          projectId: your-Firebase-project-ID
+          channelId: live
+      - uses: axel-andersson/action-functions-deploy@v1.0
+      with:
+        firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+        projectId: your-Firebase-project-ID
+```
+
+### Deploying functions from a repo with a non-default structure
+
+If the `firebase.json` file is not located in the root of your GitHub repo, the option `entryPoint` needs to be specified.
+This option needs to be set to the path to the directory containing `firebase.json`.
+
+This is the default firebase project structure. The `entryPoint` option may be left out or set to the default values of `.`
+
+```
+.
+├── functions                     # firebase functions
+│   └── ...
+├── hosting                       # firebase hosting
+│   └── ...
+├── .firebaserc                   # firebase config file
+├── .firebase.json                # firebase config file
+└── ...
+
+```
+
+The following is an example of a monorepo where multiple applications are connected to the same firebase project. The applications, as well as the firebase folder, are located inside the `packages` directory. In this arbitrary example project, the directory containing the firebase functions has been named `odd-functions-folder`.
+
+Here, the `entryPoint` needs to be set to `packages/firebase`. The deploy action automatically parses the directory containing cloud functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `packages/firebase/odd-functions-folder`.
+
+```
+.
+├── packages 
+│   ├── android                   # android app
+│   ├── ios                       # ios app
+│   ├── web                       # web app
+│   └── firebase                  # the folder containting firebase config files
+│       ├── .firebaserc           # firebase config file
+│       ├── .firebase.json        # firebase config file
+│       ├── odd-functions-folder  # firebase functions
+│       │   └── ...
+│       └── ...
+└── ...
+
+```
+
+```yaml
+name: Deploy Firebase Functions
 
 on:
   push:
