@@ -139,7 +139,7 @@ async function installInDir(directory: string) {
 
     console.log(`Installing npm dependencies.`);
 
-    await exec("npm install", [], {
+    await exec("npm ci", [], {
       listeners: {
         stdout: (data: Buffer) => {
           installOutputBuffer.push(data);
