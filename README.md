@@ -49,7 +49,7 @@ You will need to add the role of `Service Account User` (`roles/iam.serviceAccou
 This will allow the service account to properly deploy Cloud Functions.
 
 The permissions can be updated in the **IAM & ADMIN** panel of the Google Cloud console.
-`https://console.cloud.google.com/iam-admin/iam?project={your-firebase-project-id}`
+`https://console.cloud.google.com/iam-admin/iam?project=your-firebase-project-id`
 If you haven't enabled the **Identity and Access Management (IAM) API**, you may need to do so in order to update roles and allow deployment.
 
 
