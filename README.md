@@ -4,11 +4,12 @@
 
 ## Setup
 
-Setting up the deployment of Firebase Functions becomes easier if the deployment of functions is first configured.
+Setting up the deployment of Firebase Functions becomes simpler if the deployment of hosting is configured first.
 This is because setting up hosting deployment automatically creates a service account in your Firebase project and
-gives it permissions to deploy Firebase Hosting. (Note that additional permissions are required for deploying Firebase Functions)
+gives it permissions to deploy Firebase Hosting. This service account can then be used to deploy Firebase Functions.
+(Note that additional permissions are required for deploying Firebase Functions.)
 
-It also encrypts that service account's JSON key and uploads it to the specified GitHub repository as a [GitHub secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions).
+Importantly, it also encrypts that service account's JSON key and uploads it to the specified GitHub repository as a [GitHub secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions). This same key can be used when deploying Firebase Functions.
 
 ### Setting up hosting
 
@@ -31,7 +32,7 @@ firebase init hosting:github
 
 ### Setting up functions
 
-A basic setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd#node.js).
+A setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd#node.js).
 
 - If you've NOT set up Functions, run this version of the command from the root of your local directory:
 
@@ -41,15 +42,15 @@ firebase init functions
 
 ### Setting up Service Account permissions
 
-Setting up firebase hosting by following the steps outlined above creates a Service Account with a name similar to the following:
+Setting up firebase hosting by following the steps outlined above creates a service account with a name similar to the following:
 `github-action-123456789@your-firebase-project.iam.gserviceaccount.com`
 
-You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this Service Account.
+You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this service account.
 This will allow the service account to properly deploy Cloud Functions.
 
 The permissions can be updated in the _IAM & ADMIN_ panel of the Google Cloud console.
 `https://console.cloud.google.com/iam-admin/iam?project={your-firebase-project-id}`
-If you haven't enabled the _Identity and Access Management (IAM) API_, you may need to do so in order to allow deployment.
+If you haven't enabled the _Identity and Access Management (IAM) API_, you may need to do so in order to update roles and allow deployment.
 
 
 ## Usage
