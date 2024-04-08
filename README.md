@@ -137,7 +137,7 @@ This is a default firebase project structure. The `entryPoint` option may be lef
 
 The following is an example of a monorepo where multiple applications are connected to the same firebase project. The applications, as well as the firebase folder, are located inside the `packages` directory. In this arbitrary example project, the directory containing the firebase functions has been named `odd-functions-folder`.
 
-Here, the `entryPoint` needs to be set to `packages/firebase`. The deploy action automatically parses the directory containing cloud functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `packages/firebase/odd-functions-folder`.
+Here, the `entryPoint` needs to be set to `./packages/firebase`. The deploy action automatically parses the directory containing cloud functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `./packages/firebase/odd-functions-folder`.
 
 ```
 .
@@ -155,6 +155,8 @@ Here, the `entryPoint` needs to be set to `packages/firebase`. The deploy action
 
 ```
 
+For this project, firebase functions can be deployed using the following action:
+
 ```yaml
 name: Deploy Firebase Functions
 
@@ -171,18 +173,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Add any build steps here. For example:
-      # - run: npm ci && npm run build
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-          projectId: your-Firebase-project-ID
-          channelId: live
       - uses: axel-andersson/action-functions-deploy@v1.0
       with:
         firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
         projectId: your-Firebase-project-ID
+        entryPoint: ./packages/firebase
 ```
 
 
