@@ -78,9 +78,9 @@ jobs:
           projectId: your-Firebase-project-ID
 ```
 
-### Deploy functions and hostingon merge
+### Deploy functions and hosting on merge
 
-Add a workflow (`.github/workflows/deploy-functions-prod.yml`):
+Add a workflow (`.github/workflows/deploy-functions-hosting-prod.yml`):
 
 This uses the github action FirebaseExtended/action-hosting-deploy
 For information about options and how to use this action, please visit https://github.com/FirebaseExtended/action-hosting-deploy
