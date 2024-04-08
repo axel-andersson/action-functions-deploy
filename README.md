@@ -137,7 +137,7 @@ This is a default firebase project structure. The `entryPoint` option may be lef
 
 The following is an example of a monorepo where multiple applications are connected to the same firebase project. The applications, as well as the firebase folder, are located inside the `packages` directory. In this arbitrary example project, the directory containing the firebase functions has been named `odd-functions-folder`.
 
-Here, the `entryPoint` needs to be set to `./packages/firebase`. The deploy action automatically parses the directory containing cloud functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `./packages/firebase/odd-functions-folder`.
+Here, the `entryPoint` needs to be set to `./packages/firebase`. The deploy action automatically parses the directory containing functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `./packages/firebase/odd-functions-folder`.
 
 ```
 .
