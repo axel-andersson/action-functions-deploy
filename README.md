@@ -145,6 +145,6 @@ The version of `firebase-tools` to use. If not specified, defaults to `latest`.
 
 ## Status
 
-![Status: Experimental](https://img.shields.io/badge/Status-Experimental-blue)
+![Status: Unofficial](https://img.shields.io/badge/Status-Unofficial-purple)
 
 This repository is not maintained by google, nor is it a supported Firebase product. Issues here are answered by maintainers and other community members on GitHub on a best-effort basis.
