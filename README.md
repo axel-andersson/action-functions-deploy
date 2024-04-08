@@ -139,6 +139,8 @@ The following is an example of a monorepo where multiple applications are connec
 
 Here, the `entryPoint` needs to be set to `./packages/firebase`. The deploy action automatically parses the directory containing functions from `firebase.json`. In this case, the deploy action will automatically locate and install dependencies in `./packages/firebase/odd-functions-folder`.
 
+_The action also supports using multiple codebases in a monorepo setup (assuming all are codebases are JavaScript or TypeScript and all directories are children to the directory containing firebase.json). See [the Firebase docs](https://firebase.google.com/docs/functions/organize-functions?gen=2nd) for more info about using multiple codebases._  Please note that this feature is not extensively tested.
+
 ```
 .
 ├── packages 
