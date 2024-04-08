@@ -1,13 +1,18 @@
 # 🔥☁️ Firebase Functions GitHub Action
 
-- Creates a new preview channel (and its associated preview URL) for every PR on your GitHub repository.
-- Adds a comment to the PR with the preview URL so that you and each reviewer can view and test the PR's changes in a "preview" version of your app.
-- Updates the preview URL with changes from each commit by automatically deploying to the associated preview channel. The URL doesn't change with each new commit.
-- (Optional) Deploys the current state of your GitHub repo to your live channel when the PR is merged.
+- Deploys firebase functions from your GitHub repo, for instance when a PR is merged.
 
 ## Setup
 
-A full setup guide can be found [in the Firebase Hosting docs](https://firebase.google.com/docs/hosting/github-integration).
+Setup of the deployment of Firebase Functions becomes easier if the deployment of functions is first configured.
+This is because setting up hosting deployment automatically creates a service account in your Firebase project and
+gives it permissions to deploy Firebase Hosting. (Note that additional permissions are required for deploying Firebase Functions)
+
+It also encrypts that service account's JSON key and uploads it to the specified GitHub repository as a [GitHub secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions).
+
+### Setting up hosting
+
+A full setup guide of Firebase Hosting can be found [in the Firebase Hosting docs](https://firebase.google.com/docs/hosting/github-integration).
 
 The [Firebase CLI](https://firebase.google.com/docs/cli) can get you set up quickly with a default configuration.
 
@@ -23,6 +28,29 @@ firebase init hosting
 ```bash
 firebase init hosting:github
 ```
+
+### Setting up functions
+
+A basic setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd#node.js).
+
+- If you've NOT set up Functions, run this version of the command from the root of your local directory:
+
+```bash
+firebase init functions
+```
+
+### Setting up Service Account permissions
+
+Setting up firebase hosting by following the steps outlined above creates a Service Account with a name similar to the following:
+`github-action-123456789@your-firebase-project.iam.gserviceaccount.com`
+
+You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this Service Account.
+This will allow the service account to properly deploy Cloud Functions.
+
+The permissions can be updated in the _IAM & ADMIN_ panel of the Google Cloud console.
+`https://console.cloud.google.com/iam-admin/iam?project={your-firebase-project-id}`
+If you haven't enabled the _Identity and Access Management (IAM) API_, you may need to do so in order to allow deployment.
+
 
 ## Usage
 
