@@ -121,7 +121,7 @@ jobs:
 If the `firebase.json` file is not located in the root of your GitHub repo, the option `entryPoint` needs to be specified.
 This option needs to be set to the path to the directory containing `firebase.json`.
 
-This is the default firebase project structure. The `entryPoint` option may be left out or set to the default values of `.`
+This is a default firebase project structure. The `entryPoint` option may be left out or set to the default values of `.`
 
 ```
 .
