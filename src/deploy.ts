@@ -44,7 +44,6 @@ export type ProductionSuccessResult = {
 
 type DeployConfig = {
   projectId: string;
-  target?: string;
   // Optional version specification for firebase-tools. Defaults to `latest`.
   firebaseToolsVersion?: string;
 };

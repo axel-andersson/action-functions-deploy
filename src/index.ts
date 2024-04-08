@@ -15,13 +15,9 @@
  */
 
 import { endGroup, getInput, setFailed, startGroup } from "@actions/core";
-import { context, getOctokit } from "@actions/github";
 import { existsSync } from "fs";
 import { createGacFile } from "./createGACFile";
-import {
-  deployProductionFunctions,
-  ErrorResult,
-} from "./deploy";
+import { deployProductionFunctions, ErrorResult } from "./deploy";
 import { installDependencies } from "./installDependencies";
 
 // Inputs defined in action.yml
@@ -29,15 +25,10 @@ const projectId = getInput("projectId");
 const googleApplicationCredentials = getInput("firebaseServiceAccount", {
   required: true,
 });
-const token = process.env.GITHUB_TOKEN || getInput("repoToken"); //TODO: Needed for function deployment?
-const octokit = token ? getOctokit(token) : undefined;
 const entryPoint = getInput("entryPoint");
-const target = getInput("target"); // TODO: Needed for function deployment?
 const firebaseToolsVersion = getInput("firebaseToolsVersion");
 
 async function run() {
-  const isPullRequest = !!context.payload.pull_request; // TODO: Needed for function deployment?
-
   let finish = (details: Object) => console.log(details);
 
   try {
@@ -71,9 +62,9 @@ async function run() {
     startGroup("Installing function dependencies");
 
     const installDependenciesResult = await installDependencies();
-    
+
     if (installDependenciesResult.status === "error") {
-      throw Error((installDependenciesResult).error);
+      throw Error(installDependenciesResult.error);
     }
 
     endGroup();
@@ -81,7 +72,6 @@ async function run() {
     startGroup("Deploying firebase functions");
     const deployment = await deployProductionFunctions(gacFilename, {
       projectId,
-      target,
       firebaseToolsVersion,
     });
     if (deployment.status === "error") {
@@ -89,9 +79,7 @@ async function run() {
     }
     endGroup();
 
-    //TODO: START - Needed for functions deploy?
-
-    const hostname = target ? `${target}.web.app` : `${projectId}.web.app`;
+    const hostname = "hostname";
     const url = `https://${hostname}/`; // Update to console link
     await finish({
       details_url: url,
