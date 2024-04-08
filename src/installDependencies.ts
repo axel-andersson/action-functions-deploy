@@ -55,14 +55,14 @@ function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
   try {
     console.log("Parsing 'firebase.json'.");
     const dataString = readFileSync("firebase.json", "utf8");
-    
+
     console.log(`##### firebase.JSON
-       `)
+       `);
     console.log(dataString);
     console.log(`
     
     
-    `)
+    `);
     var firebaseData = JSON.parse(dataString);
     return { status: "success", result: { data: firebaseData } };
   } catch (e) {
@@ -129,6 +129,17 @@ async function installInDir(directory: string) {
     };
   }
 
+  // Check if python is used. If so, no need to install npm dependencies
+  if (existsSync("main.py")) {
+    console.log(
+      `Directory '${directory}' using Python. This is not yet supported.`
+    );
+
+    return {
+      status: "error",
+      error: "This GitHub action currently does not support Python codebases for firebase functions.",
+    };
+  }
 
   const installOutputBuffer: Buffer[] = [];
   const installErrorBuffer: Buffer[] = [];
@@ -146,12 +157,12 @@ async function installInDir(directory: string) {
         },
         stderr: (data: Buffer) => {
           installErrorBuffer.push(data);
-        }
+        },
       },
       cwd,
     });
 
-    console.log("")
+    console.log("");
     console.log(`Listing installed dependencies.`);
     await exec("npm ls", [], { cwd });
   } catch (e) {
@@ -193,6 +204,9 @@ export async function installDependencies(): Promise<
 
   const directories = directoriesResult.result.directories;
 
+  const installedDirectories: string[] = [];
+
+  // Iterating like this instead of using directories[0] allows for multiple codebases.
   for (const directory of directories) {
     const installResult = await installInDir(directory);
     if (installResult.status === "error") {
@@ -201,9 +215,13 @@ export async function installDependencies(): Promise<
         error: `Could not install dependencies in directory ${directory}: ${installResult.error}`,
       };
     }
+
+    if (typeof installResult?.result?.directory === "string") {
+      installedDirectories.push(installResult.result.directory);
+    }
   }
 
-  console.log("Successfully installed all npm dependencies.");
+  console.log("Successfully installed all dependencies.");
 
-  return { status: "success", result: { directories } };
+  return { status: "success", result: { directories: installedDirectories } };
 }
