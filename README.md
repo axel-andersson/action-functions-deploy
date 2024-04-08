@@ -32,7 +32,7 @@ firebase init hosting:github
 
 ### Setting up functions
 
-A setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd#node.js).
+A setup guide of Firebase Functions can be found [in the Firebase Functions docs](https://firebase.google.com/docs/functions/get-started?gen=2nd).
 
 - If you've NOT set up Functions, run this version of the command from the root of your local directory:
 
@@ -48,9 +48,9 @@ Setting up firebase hosting by following the steps outlined above creates a serv
 You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this service account.
 This will allow the service account to properly deploy Cloud Functions.
 
-The permissions can be updated in the _IAM & ADMIN_ panel of the Google Cloud console.
+The permissions can be updated in the **IAM & ADMIN** panel of the Google Cloud console.
 `https://console.cloud.google.com/iam-admin/iam?project={your-firebase-project-id}`
-If you haven't enabled the _Identity and Access Management (IAM) API_, you may need to do so in order to update roles and allow deployment.
+If you haven't enabled the **Identity and Access Management (IAM) API**, you may need to do so in order to update roles and allow deployment.
 
 
 ## Usage
