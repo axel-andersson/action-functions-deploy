@@ -1,10 +1,10 @@
 # 🔥☁️ Firebase Functions GitHub Action
 
-- Deploys firebase functions from your GitHub repo, for instance when a PR is merged.
+- Deploys firebase functions from your GitHub repo
 
 ## Setup
 
-Setup of the deployment of Firebase Functions becomes easier if the deployment of functions is first configured.
+Setting up the deployment of Firebase Functions becomes easier if the deployment of functions is first configured.
 This is because setting up hosting deployment automatically creates a service account in your Firebase project and
 gives it permissions to deploy Firebase Hosting. (Note that additional permissions are required for deploying Firebase Functions)
 
