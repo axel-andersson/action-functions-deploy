@@ -56,7 +56,8 @@ function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
     console.log("Parsing 'firebase.json'.");
     const dataString = readFileSync("firebase.json", "utf8");
 
-    console.log(`##### firebase.JSON
+    console.log(`
+    ##### firebase.JSON
        `);
     console.log(dataString);
     console.log(`
