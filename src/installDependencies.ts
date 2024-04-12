@@ -169,7 +169,7 @@ async function installPythonDependencies() {
       cwd,
     });
 
-    await exec(". venv/bin/activate", [], {
+    await exec("sh activate", [], {
       listeners: {
         stdout: (data: Buffer) => {
           installOutputBuffer.push(data);
@@ -178,7 +178,7 @@ async function installPythonDependencies() {
           installErrorBuffer.push(data);
         },
       },
-      cwd,
+      cwd: `${cwd}/venv/bin`,
     });
 
     await exec("python -m pip install -r requirements.txt", [], {
