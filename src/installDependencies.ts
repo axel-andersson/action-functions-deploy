@@ -115,7 +115,7 @@ async function installJavascriptDependencies() {
   try {
     console.log("cwd: " + cwd);
 
-    console.log(`Installing npm dependencies.`);
+    console.log(`Detected JS/TS: Installing npm dependencies.`);
 
     await exec("npm ci", [], {
       listeners: {
@@ -154,6 +154,8 @@ async function installPythonDependencies() {
   const cwd = process.cwd();
 
   console.log("cwd: " + cwd);
+
+  console.log(`Detected Python: Installing dependencies.`);
 
   try {
     await exec("python3.11 -m venv venv", [], {
@@ -208,12 +210,6 @@ async function installPythonDependencies() {
       error: `Error when installing npm dependencies: ${e}`,
     };
   }
-
-  return {
-    status: "error",
-    error:
-      "This GitHub action currently does not support Python codebases for firebase functions.",
-  };
 }
 
 async function installInDir(directory: string) {
