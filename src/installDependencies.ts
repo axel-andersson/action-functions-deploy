@@ -152,7 +152,6 @@ async function installPythonDependencies() {
   const installErrorBuffer: Buffer[] = [];
 
   const cwd = process.cwd();
-
   console.log("cwd: " + cwd);
 
   console.log(`Detected Python: Installing dependencies.`);
