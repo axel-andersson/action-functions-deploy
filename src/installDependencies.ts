@@ -157,7 +157,7 @@ async function installPythonDependencies() {
   console.log(`Detected Python: Installing dependencies.`);
 
   try {
-    await exec("python3.11 -m venv venv", [], {
+    await exec("python -m venv venv", [], {
       listeners: {
         stdout: (data: Buffer) => {
           installOutputBuffer.push(data);
@@ -181,7 +181,7 @@ async function installPythonDependencies() {
       cwd,
     });
 
-    await exec("python3.11 -m pip install -r requirements.txt", [], {
+    await exec("python -m pip install -r requirements.txt", [], {
       listeners: {
         stdout: (data: Buffer) => {
           installOutputBuffer.push(data);
