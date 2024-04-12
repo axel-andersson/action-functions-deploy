@@ -296,7 +296,5 @@ export async function installDependencies(): Promise<
     }
   }
 
-  console.log("Successfully installed all dependencies.");
-
   return { status: "success", result: { directories: installedDirectories } };
 }

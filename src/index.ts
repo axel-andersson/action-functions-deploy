@@ -59,15 +59,11 @@ async function run() {
     );
     endGroup();
 
-    startGroup("Installing function dependencies");
-
     const installDependenciesResult = await installDependencies();
 
     if (installDependenciesResult.status === "error") {
       throw Error(installDependenciesResult.error);
     }
-
-    endGroup();
 
     startGroup("Deploying firebase functions");
     const deployment = await deployProductionFunctions(gacFilename, {
