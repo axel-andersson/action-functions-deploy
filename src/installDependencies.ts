@@ -193,10 +193,6 @@ async function installPythonDependencies() {
       cwd,
     });
 
-    console.log("");
-    console.log(`Listing installed dependencies.`);
-    await exec("python -m pip list -local", [], { cwd });
-
     return {
       status: "success",
     };
