@@ -147,13 +147,66 @@ async function installJavascriptDependencies() {
 }
 
 async function installPythonDependencies() {
+  const installOutputBuffer: Buffer[] = [];
+  const installErrorBuffer: Buffer[] = [];
+
   const cwd = process.cwd();
 
   console.log("cwd: " + cwd);
 
-  console.log(
-    `Current working directory is using Python. This is not yet supported.`
-  );
+  try {
+    await exec("python3.11 -m venv venv", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    await exec(". venv/bin/activate", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    await exec("python3.11 -m pip install -r requirements.txt", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    console.log("");
+    console.log(`Listing installed dependencies.`);
+    await exec("python -m pip list -local", [], { cwd });
+
+    return {
+      status: "success",
+    };
+  } catch (e) {
+    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
+    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
+    console.log(e.message);
+    return {
+      status: "error",
+      error: `Error when installing npm dependencies: ${e}`,
+    };
+  }
 
   return {
     status: "error",
