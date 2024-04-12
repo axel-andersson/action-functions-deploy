@@ -18,7 +18,7 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ACTION_FUNCTIONS_DEPLOY }}'
           channelId: live
           projectId: action-functions-deploy
-      - uses: axel-andersson/action-fuctions-deploy@v0.1
+      - uses: axel-andersson/action-functions-deploy@v0.1
         with:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ACTION_FUNCTIONS_DEPLOY }}'
           projectId: action-functions-deploy
