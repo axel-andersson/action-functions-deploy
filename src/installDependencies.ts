@@ -17,6 +17,7 @@
 import { ErrorResult } from "./deploy";
 import { existsSync, readFileSync } from "fs";
 import { exec } from "@actions/exec";
+import { endGroup, startGroup } from "@actions/core";
 
 type FirebaseParseSuccessResult = {
   status: "success";
@@ -263,6 +264,7 @@ async function installInDir(directory: string) {
 export async function installDependencies(): Promise<
   DependenciesSuccessResult | ErrorResult
 > {
+  startGroup("Parsing firebase.json");
   const firebaseDataResult = parseFirebaseJson();
   if (firebaseDataResult.status === "error") return firebaseDataResult;
 
@@ -275,8 +277,11 @@ export async function installDependencies(): Promise<
 
   const installedDirectories: string[] = [];
 
+  endGroup();
+
   // Iterating like this instead of using directories[0] allows for multiple codebases.
   for (const directory of directories) {
+    startGroup("Installing dependencies in dir '" + directory + "'");
     const installResult = await installInDir(directory);
     if (installResult.status === "error") {
       return {
@@ -284,6 +289,7 @@ export async function installDependencies(): Promise<
         error: `Could not install dependencies in directory ${directory}: ${installResult.error}`,
       };
     }
+    endGroup();
 
     if (typeof installResult?.result?.directory === "string") {
       installedDirectories.push(installResult.result.directory);
