@@ -16,6 +16,7 @@
     {
       "source": "functions-python",
       "codebase": "py",
+      "runtime": "python312",
       "ignore": [
         "venv",
         ".git",
