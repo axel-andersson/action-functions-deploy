@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: axel-andersson/action-functions-deploy@v0.2-beta6
+      - uses: axel-andersson/action-functions-deploy@v0.2-beta7
         with:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ACTION_FUNCTIONS_DEPLOY }}'
           projectId: action-functions-deploy
