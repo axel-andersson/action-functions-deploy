@@ -17,6 +17,7 @@
 import { ErrorResult } from "./deploy";
 import { existsSync, readFileSync } from "fs";
 import { exec } from "@actions/exec";
+import { endGroup, startGroup } from "@actions/core";
 
 type FirebaseParseSuccessResult = {
   status: "success";
@@ -56,7 +57,8 @@ function parseFirebaseJson(): FirebaseParseSuccessResult | ErrorResult {
     console.log("Parsing 'firebase.json'.");
     const dataString = readFileSync("firebase.json", "utf8");
 
-    console.log(`##### firebase.JSON
+    console.log(`
+    ##### firebase.JSON
        `);
     console.log(dataString);
     console.log(`
@@ -106,6 +108,106 @@ function getFunctionDirectories(
   }
 }
 
+async function installJavascriptDependencies() {
+  const installOutputBuffer: Buffer[] = [];
+  const installErrorBuffer: Buffer[] = [];
+  const cwd = process.cwd();
+
+  try {
+    console.log("cwd: " + cwd);
+
+    console.log(`Detected JS/TS: Installing npm dependencies.`);
+
+    await exec("npm ci", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    console.log("");
+    console.log(`Listing installed dependencies.`);
+    await exec("npm ls", [], { cwd });
+
+    return {
+      status: "success",
+    };
+  } catch (e) {
+    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
+    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
+    console.log(e.message);
+    return {
+      status: "error",
+      error: `Error when installing npm dependencies: ${e}`,
+    };
+  }
+}
+
+async function installPythonDependencies() {
+  const installOutputBuffer: Buffer[] = [];
+  const installErrorBuffer: Buffer[] = [];
+
+  const cwd = process.cwd();
+  console.log("cwd: " + cwd);
+
+  console.log(`Detected Python: Installing dependencies.`);
+
+  try {
+    await exec("python -m venv venv", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    await exec("sh activate", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd: `${cwd}/venv/bin`,
+    });
+
+    await exec("python -m pip install -r requirements.txt", [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          installOutputBuffer.push(data);
+        },
+        stderr: (data: Buffer) => {
+          installErrorBuffer.push(data);
+        },
+      },
+      cwd,
+    });
+
+    return {
+      status: "success",
+    };
+  } catch (e) {
+    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
+    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
+    console.log(e.message);
+    return {
+      status: "error",
+      error: `Error when installing npm dependencies: ${e}`,
+    };
+  }
+}
+
 async function installInDir(directory: string) {
   const baseDirectory = process.cwd();
   console.log("Entrypoint directory: " + baseDirectory);
@@ -129,50 +231,18 @@ async function installInDir(directory: string) {
     };
   }
 
-  // Check if python is used. If so, no need to install npm dependencies
-  if (existsSync("main.py")) {
-    console.log(
-      `Directory '${directory}' using Python. This is not yet supported.`
-    );
+  const language = existsSync("main.py") ? "python" : "javascript"; //"javascript" includes typescript.
 
-    return {
-      status: "error",
-      error: "This GitHub action currently does not support Python codebases for firebase functions.",
-    };
-  }
-
-  const installOutputBuffer: Buffer[] = [];
-  const installErrorBuffer: Buffer[] = [];
-
-  try {
-    const cwd = process.cwd();
-    console.log("cwd: " + cwd);
-
-    console.log(`Installing npm dependencies.`);
-
-    await exec("npm ci", [], {
-      listeners: {
-        stdout: (data: Buffer) => {
-          installOutputBuffer.push(data);
-        },
-        stderr: (data: Buffer) => {
-          installErrorBuffer.push(data);
-        },
-      },
-      cwd,
-    });
-
-    console.log("");
-    console.log(`Listing installed dependencies.`);
-    await exec("npm ls", [], { cwd });
-  } catch (e) {
-    console.log(Buffer.concat(installOutputBuffer).toString("utf-8"));
-    console.log(Buffer.concat(installErrorBuffer).toString("utf-8"));
-    console.log(e.message);
-    return {
-      status: "error",
-      error: `Error when installing npm dependencies: ${e}`,
-    };
+  if (language === "python") {
+    const pythonInstallResult = await installPythonDependencies();
+    if (pythonInstallResult.status === "error") {
+      return { status: "error", error: pythonInstallResult.error };
+    }
+  } else if (language === "javascript") {
+    const javascriptInstallResult = await installJavascriptDependencies();
+    if (javascriptInstallResult.status === "error") {
+      return { status: "error", error: javascriptInstallResult.error };
+    }
   }
 
   try {
@@ -194,6 +264,7 @@ async function installInDir(directory: string) {
 export async function installDependencies(): Promise<
   DependenciesSuccessResult | ErrorResult
 > {
+  startGroup("Parsing firebase.json");
   const firebaseDataResult = parseFirebaseJson();
   if (firebaseDataResult.status === "error") return firebaseDataResult;
 
@@ -206,8 +277,11 @@ export async function installDependencies(): Promise<
 
   const installedDirectories: string[] = [];
 
+  endGroup();
+
   // Iterating like this instead of using directories[0] allows for multiple codebases.
   for (const directory of directories) {
+    startGroup("Installing dependencies in dir '" + directory + "'");
     const installResult = await installInDir(directory);
     if (installResult.status === "error") {
       return {
@@ -215,13 +289,12 @@ export async function installDependencies(): Promise<
         error: `Could not install dependencies in directory ${directory}: ${installResult.error}`,
       };
     }
+    endGroup();
 
     if (typeof installResult?.result?.directory === "string") {
       installedDirectories.push(installResult.result.directory);
     }
   }
-
-  console.log("Successfully installed all dependencies.");
 
   return { status: "success", result: { directories: installedDirectories } };
 }
