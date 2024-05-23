@@ -47,6 +47,7 @@ Setting up firebase hosting by following the steps outlined above creates a serv
 `github-action-123456789@your-firebase-project.iam.gserviceaccount.com`
 
 You will need to add the role of `Service Account User` (`roles/iam.serviceAccountUser`) to this service account.
+You will also need to add the role of `Cloud Functions Admin` (`roles/cloudfunctions.admin`), or a more granular permission configuration, to this service account.
 This will allow the service account to properly deploy Cloud Functions.
 
 The permissions can be updated in the **IAM & ADMIN** panel of the Google Cloud console.
